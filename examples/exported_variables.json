@@ -1,0 +1,516 @@
+{
+  "test_var": {
+    "id": 1,
+    "name": "test_var",
+    "data_type": "discrete",
+    "category_set_id": null,
+    "description": "Test variable",
+    "reference": null,
+    "labels": [],
+    "constraints": []
+  },
+  "age": {
+    "id": 2,
+    "name": "age",
+    "data_type": "discrete",
+    "category_set_id": null,
+    "description": "Age of the participant in years",
+    "reference": null,
+    "labels": [],
+    "constraints": [
+      {
+        "type": "min_value",
+        "min_value": 0
+      },
+      {
+        "type": "max_value",
+        "max_value": 120
+      }
+    ]
+  },
+  "gender": {
+    "id": 3,
+    "name": "gender",
+    "data_type": "nominal",
+    "category_set_id": 1,
+    "description": "Gender of the participant",
+    "reference": null,
+    "labels": [
+      {
+        "id": 2,
+        "entity_type": "variable",
+        "entity_id": 3,
+        "language_code": "en",
+        "language": null,
+        "text": "Participant's gender",
+        "purpose": "long"
+      },
+      {
+        "id": 1,
+        "entity_type": "variable",
+        "entity_id": 3,
+        "language_code": "en",
+        "language": null,
+        "text": "Gender",
+        "purpose": "short"
+      }
+    ],
+    "constraints": [],
+    "category_set": {
+      "id": 1,
+      "name": "gender",
+      "categories": [
+        {
+          "id": 1,
+          "name": "male",
+          "category_set_id": 1,
+          "labels": []
+        },
+        {
+          "id": 2,
+          "name": "female",
+          "category_set_id": 1,
+          "labels": []
+        },
+        {
+          "id": 3,
+          "name": "other",
+          "category_set_id": 1,
+          "labels": []
+        },
+        {
+          "id": 4,
+          "name": "prefer_not_to_say",
+          "category_set_id": 1,
+          "labels": []
+        }
+      ]
+    }
+  },
+  "height": {
+    "id": 4,
+    "name": "height",
+    "data_type": "continuous",
+    "category_set_id": null,
+    "description": "Height of the participant in centimeters",
+    "reference": "SI units",
+    "labels": [
+      {
+        "id": 4,
+        "entity_type": "variable",
+        "entity_id": 4,
+        "language_code": "en",
+        "language": null,
+        "text": "Height in centimeters",
+        "purpose": "Long"
+      },
+      {
+        "id": 3,
+        "entity_type": "variable",
+        "entity_id": 4,
+        "language_code": "en",
+        "language": null,
+        "text": "Height",
+        "purpose": "Short"
+      },
+      {
+        "id": 6,
+        "entity_type": "variable",
+        "entity_id": 4,
+        "language_code": "fi",
+        "language": null,
+        "text": "Pituus senttimetrein\u00e4",
+        "purpose": "Long"
+      },
+      {
+        "id": 5,
+        "entity_type": "variable",
+        "entity_id": 4,
+        "language_code": "fi",
+        "language": null,
+        "text": "Pituus",
+        "purpose": "Short"
+      }
+    ],
+    "constraints": [
+      {
+        "type": "min_value",
+        "min_value": 0
+      },
+      {
+        "type": "max_value",
+        "max_value": 300
+      }
+    ]
+  },
+  "education_level": {
+    "id": 5,
+    "name": "education_level",
+    "data_type": "ordinal",
+    "category_set_id": 2,
+    "description": "Highest level of education completed",
+    "reference": "ISCED 2011",
+    "labels": [
+      {
+        "id": 18,
+        "entity_type": "variable",
+        "entity_id": 5,
+        "language_code": "en",
+        "language": null,
+        "text": "Highest level of education completed",
+        "purpose": "Long"
+      },
+      {
+        "id": 17,
+        "entity_type": "variable",
+        "entity_id": 5,
+        "language_code": "en",
+        "language": null,
+        "text": "Education Level",
+        "purpose": "Short"
+      },
+      {
+        "id": 20,
+        "entity_type": "variable",
+        "entity_id": 5,
+        "language_code": "fi",
+        "language": null,
+        "text": "Korkein suoritettu koulutustaso",
+        "purpose": "Long"
+      },
+      {
+        "id": 19,
+        "entity_type": "variable",
+        "entity_id": 5,
+        "language_code": "fi",
+        "language": null,
+        "text": "Koulutustaso",
+        "purpose": "Short"
+      }
+    ],
+    "constraints": [],
+    "category_set": {
+      "id": 2,
+      "name": "education_level",
+      "categories": [
+        {
+          "id": 5,
+          "name": "primary",
+          "category_set_id": 2,
+          "labels": [
+            {
+              "id": 7,
+              "entity_type": "category",
+              "entity_id": 5,
+              "language_code": "en",
+              "language": null,
+              "text": "Primary education",
+              "purpose": "Short"
+            },
+            {
+              "id": 8,
+              "entity_type": "category",
+              "entity_id": 5,
+              "language_code": "fi",
+              "language": null,
+              "text": "Peruskoulu",
+              "purpose": "Short"
+            }
+          ]
+        },
+        {
+          "id": 6,
+          "name": "secondary",
+          "category_set_id": 2,
+          "labels": [
+            {
+              "id": 9,
+              "entity_type": "category",
+              "entity_id": 6,
+              "language_code": "en",
+              "language": null,
+              "text": "Secondary education",
+              "purpose": "Short"
+            },
+            {
+              "id": 10,
+              "entity_type": "category",
+              "entity_id": 6,
+              "language_code": "fi",
+              "language": null,
+              "text": "Toisen asteen koulutus",
+              "purpose": "Short"
+            }
+          ]
+        },
+        {
+          "id": 7,
+          "name": "bachelor",
+          "category_set_id": 2,
+          "labels": [
+            {
+              "id": 11,
+              "entity_type": "category",
+              "entity_id": 7,
+              "language_code": "en",
+              "language": null,
+              "text": "Bachelor's degree",
+              "purpose": "Short"
+            },
+            {
+              "id": 12,
+              "entity_type": "category",
+              "entity_id": 7,
+              "language_code": "fi",
+              "language": null,
+              "text": "Kandidaatin tutkinto",
+              "purpose": "Short"
+            }
+          ]
+        },
+        {
+          "id": 8,
+          "name": "master",
+          "category_set_id": 2,
+          "labels": [
+            {
+              "id": 13,
+              "entity_type": "category",
+              "entity_id": 8,
+              "language_code": "en",
+              "language": null,
+              "text": "Master's degree",
+              "purpose": "Short"
+            },
+            {
+              "id": 14,
+              "entity_type": "category",
+              "entity_id": 8,
+              "language_code": "fi",
+              "language": null,
+              "text": "Maisterin tutkinto",
+              "purpose": "Short"
+            }
+          ]
+        },
+        {
+          "id": 9,
+          "name": "doctoral",
+          "category_set_id": 2,
+          "labels": [
+            {
+              "id": 15,
+              "entity_type": "category",
+              "entity_id": 9,
+              "language_code": "en",
+              "language": null,
+              "text": "Doctoral degree",
+              "purpose": "Short"
+            },
+            {
+              "id": 16,
+              "entity_type": "category",
+              "entity_id": 9,
+              "language_code": "fi",
+              "language": null,
+              "text": "Tohtorin tutkinto",
+              "purpose": "Short"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "email": {
+    "id": 6,
+    "name": "email",
+    "data_type": "text",
+    "category_set_id": null,
+    "description": "Email address of the participant",
+    "reference": "RFC 5322",
+    "labels": [
+      {
+        "id": 22,
+        "entity_type": "variable",
+        "entity_id": 6,
+        "language_code": "en",
+        "language": null,
+        "text": "Email address",
+        "purpose": "Long"
+      },
+      {
+        "id": 21,
+        "entity_type": "variable",
+        "entity_id": 6,
+        "language_code": "en",
+        "language": null,
+        "text": "Email",
+        "purpose": "Short"
+      },
+      {
+        "id": 24,
+        "entity_type": "variable",
+        "entity_id": 6,
+        "language_code": "fi",
+        "language": null,
+        "text": "S\u00e4hk\u00f6postiosoite",
+        "purpose": "Long"
+      },
+      {
+        "id": 23,
+        "entity_type": "variable",
+        "entity_id": 6,
+        "language_code": "fi",
+        "language": null,
+        "text": "S\u00e4hk\u00f6posti",
+        "purpose": "Short"
+      }
+    ],
+    "constraints": [
+      {
+        "type": "email"
+      }
+    ]
+  },
+  "website": {
+    "id": 7,
+    "name": "website",
+    "data_type": "text",
+    "category_set_id": null,
+    "description": "Personal website URL",
+    "reference": "RFC 3986",
+    "labels": [
+      {
+        "id": 26,
+        "entity_type": "variable",
+        "entity_id": 7,
+        "language_code": "en",
+        "language": null,
+        "text": "Personal website URL",
+        "purpose": "Long"
+      },
+      {
+        "id": 25,
+        "entity_type": "variable",
+        "entity_id": 7,
+        "language_code": "en",
+        "language": null,
+        "text": "Website",
+        "purpose": "Short"
+      },
+      {
+        "id": 28,
+        "entity_type": "variable",
+        "entity_id": 7,
+        "language_code": "fi",
+        "language": null,
+        "text": "Henkil\u00f6kohtainen verkkosivu",
+        "purpose": "Long"
+      },
+      {
+        "id": 27,
+        "entity_type": "variable",
+        "entity_id": 7,
+        "language_code": "fi",
+        "language": null,
+        "text": "Verkkosivu",
+        "purpose": "Short"
+      }
+    ],
+    "constraints": [
+      {
+        "type": "url"
+      }
+    ]
+  },
+  "zipcode": {
+    "id": 8,
+    "name": "zipcode",
+    "data_type": "text",
+    "category_set_id": null,
+    "description": "Postal code",
+    "reference": "ISO 3166",
+    "labels": [
+      {
+        "id": 30,
+        "entity_type": "variable",
+        "entity_id": 8,
+        "language_code": "en",
+        "language": null,
+        "text": "Postal code",
+        "purpose": "Long"
+      },
+      {
+        "id": 29,
+        "entity_type": "variable",
+        "entity_id": 8,
+        "language_code": "en",
+        "language": null,
+        "text": "ZIP Code",
+        "purpose": "Short"
+      },
+      {
+        "id": 31,
+        "entity_type": "variable",
+        "entity_id": 8,
+        "language_code": "fi",
+        "language": null,
+        "text": "Postinumero",
+        "purpose": "Short"
+      }
+    ],
+    "constraints": [
+      {
+        "type": "regex",
+        "pattern": "^\\d{5}(-\\d{4})?$"
+      }
+    ]
+  },
+  "comments": {
+    "id": 9,
+    "name": "comments",
+    "data_type": "text",
+    "category_set_id": null,
+    "description": "Additional comments from the participant",
+    "reference": "",
+    "labels": [
+      {
+        "id": 33,
+        "entity_type": "variable",
+        "entity_id": 9,
+        "language_code": "en",
+        "language": null,
+        "text": "Additional comments",
+        "purpose": "Long"
+      },
+      {
+        "id": 32,
+        "entity_type": "variable",
+        "entity_id": 9,
+        "language_code": "en",
+        "language": null,
+        "text": "Comments",
+        "purpose": "Short"
+      },
+      {
+        "id": 35,
+        "entity_type": "variable",
+        "entity_id": 9,
+        "language_code": "fi",
+        "language": null,
+        "text": "Lis\u00e4kommentit",
+        "purpose": "Long"
+      },
+      {
+        "id": 34,
+        "entity_type": "variable",
+        "entity_id": 9,
+        "language_code": "fi",
+        "language": null,
+        "text": "Kommentit",
+        "purpose": "Short"
+      }
+    ],
+    "constraints": []
+  }
+}

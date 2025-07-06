@@ -1,0 +1,395 @@
+{
+  "age": {
+    "name": "age",
+    "data_type": "discrete",
+    "description": "Age of the participant in years",
+    "reference": "ISO 8601",
+    "labels": [
+      {
+        "text": "Age",
+        "language_code": "en",
+        "purpose": "Short"
+      },
+      {
+        "text": "Age in years",
+        "language_code": "en",
+        "purpose": "Long"
+      },
+      {
+        "text": "Ikä",
+        "language_code": "fi",
+        "purpose": "Short"
+      },
+      {
+        "text": "Ikä vuosissa",
+        "language_code": "fi",
+        "purpose": "Long"
+      }
+    ],
+    "constraints": [
+      {
+        "type": "min_value",
+        "min_value": 0
+      },
+      {
+        "type": "max_value",
+        "max_value": 120
+      }
+    ]
+  },
+  "height": {
+    "name": "height",
+    "data_type": "continuous",
+    "description": "Height of the participant in centimeters",
+    "reference": "SI units",
+    "labels": [
+      {
+        "text": "Height",
+        "language_code": "en",
+        "purpose": "Short"
+      },
+      {
+        "text": "Height in centimeters",
+        "language_code": "en",
+        "purpose": "Long"
+      },
+      {
+        "text": "Pituus",
+        "language_code": "fi",
+        "purpose": "Short"
+      },
+      {
+        "text": "Pituus senttimetreinä",
+        "language_code": "fi",
+        "purpose": "Long"
+      }
+    ],
+    "constraints": [
+      {
+        "type": "min_value",
+        "min_value": 0
+      },
+      {
+        "type": "max_value",
+        "max_value": 300
+      }
+    ]
+  },
+  "gender": {
+    "name": "gender",
+    "data_type": "nominal",
+    "description": "Gender of the participant",
+    "reference": "ISO 5218",
+    "labels": [
+      {
+        "text": "Gender",
+        "language_code": "en",
+        "purpose": "Short"
+      },
+      {
+        "text": "Sukupuoli",
+        "language_code": "fi",
+        "purpose": "Short"
+      }
+    ],
+    "category_set": {
+      "name": "gender",
+      "categories": [
+        {
+          "name": "male",
+          "labels": [
+            {
+              "text": "Male",
+              "language_code": "en",
+              "purpose": "Short"
+            },
+            {
+              "text": "Mies",
+              "language_code": "fi",
+              "purpose": "Short"
+            }
+          ]
+        },
+        {
+          "name": "female",
+          "labels": [
+            {
+              "text": "Female",
+              "language_code": "en",
+              "purpose": "Short"
+            },
+            {
+              "text": "Nainen",
+              "language_code": "fi",
+              "purpose": "Short"
+            }
+          ]
+        },
+        {
+          "name": "other",
+          "labels": [
+            {
+              "text": "Other",
+              "language_code": "en",
+              "purpose": "Short"
+            },
+            {
+              "text": "Muu",
+              "language_code": "fi",
+              "purpose": "Short"
+            }
+          ]
+        },
+        {
+          "name": "unknown",
+          "labels": [
+            {
+              "text": "Unknown",
+              "language_code": "en",
+              "purpose": "Short"
+            },
+            {
+              "text": "Tuntematon",
+              "language_code": "fi",
+              "purpose": "Short"
+            }
+          ]
+        }
+      ]
+    },
+    "constraints": []
+  },
+  "education_level": {
+    "name": "education_level",
+    "data_type": "ordinal",
+    "description": "Highest level of education completed",
+    "reference": "ISCED 2011",
+    "labels": [
+      {
+        "text": "Education Level",
+        "language_code": "en",
+        "purpose": "Short"
+      },
+      {
+        "text": "Highest level of education completed",
+        "language_code": "en",
+        "purpose": "Long"
+      },
+      {
+        "text": "Koulutustaso",
+        "language_code": "fi",
+        "purpose": "Short"
+      },
+      {
+        "text": "Korkein suoritettu koulutustaso",
+        "language_code": "fi",
+        "purpose": "Long"
+      }
+    ],
+    "category_set": {
+      "name": "education_level",
+      "categories": [
+        {
+          "name": "primary",
+          "labels": [
+            {
+              "text": "Primary education",
+              "language_code": "en",
+              "purpose": "Short"
+            },
+            {
+              "text": "Peruskoulu",
+              "language_code": "fi",
+              "purpose": "Short"
+            }
+          ]
+        },
+        {
+          "name": "secondary",
+          "labels": [
+            {
+              "text": "Secondary education",
+              "language_code": "en",
+              "purpose": "Short"
+            },
+            {
+              "text": "Toisen asteen koulutus",
+              "language_code": "fi",
+              "purpose": "Short"
+            }
+          ]
+        },
+        {
+          "name": "bachelor",
+          "labels": [
+            {
+              "text": "Bachelor's degree",
+              "language_code": "en",
+              "purpose": "Short"
+            },
+            {
+              "text": "Kandidaatin tutkinto",
+              "language_code": "fi",
+              "purpose": "Short"
+            }
+          ]
+        },
+        {
+          "name": "master",
+          "labels": [
+            {
+              "text": "Master's degree",
+              "language_code": "en",
+              "purpose": "Short"
+            },
+            {
+              "text": "Maisterin tutkinto",
+              "language_code": "fi",
+              "purpose": "Short"
+            }
+          ]
+        },
+        {
+          "name": "doctoral",
+          "labels": [
+            {
+              "text": "Doctoral degree",
+              "language_code": "en",
+              "purpose": "Short"
+            },
+            {
+              "text": "Tohtorin tutkinto",
+              "language_code": "fi",
+              "purpose": "Short"
+            }
+          ]
+        }
+      ]
+    },
+    "constraints": []
+  },
+  "email": {
+    "name": "email",
+    "data_type": "text",
+    "description": "Email address of the participant",
+    "reference": "RFC 5322",
+    "labels": [
+      {
+        "text": "Email",
+        "language_code": "en",
+        "purpose": "Short"
+      },
+      {
+        "text": "Email address",
+        "language_code": "en",
+        "purpose": "Long"
+      },
+      {
+        "text": "Sähköposti",
+        "language_code": "fi",
+        "purpose": "Short"
+      },
+      {
+        "text": "Sähköpostiosoite",
+        "language_code": "fi",
+        "purpose": "Long"
+      }
+    ],
+    "constraints": [
+      {
+        "type": "email"
+      }
+    ]
+  },
+  "website": {
+    "name": "website",
+    "data_type": "text",
+    "description": "Personal website URL",
+    "reference": "RFC 3986",
+    "labels": [
+      {
+        "text": "Website",
+        "language_code": "en",
+        "purpose": "Short"
+      },
+      {
+        "text": "Personal website URL",
+        "language_code": "en",
+        "purpose": "Long"
+      },
+      {
+        "text": "Verkkosivu",
+        "language_code": "fi",
+        "purpose": "Short"
+      },
+      {
+        "text": "Henkilökohtainen verkkosivu",
+        "language_code": "fi",
+        "purpose": "Long"
+      }
+    ],
+    "constraints": [
+      {
+        "type": "url"
+      }
+    ]
+  },
+  "zipcode": {
+    "name": "zipcode",
+    "data_type": "text",
+    "description": "Postal code",
+    "reference": "ISO 3166",
+    "labels": [
+      {
+        "text": "ZIP Code",
+        "language_code": "en",
+        "purpose": "Short"
+      },
+      {
+        "text": "Postal code",
+        "language_code": "en",
+        "purpose": "Long"
+      },
+      {
+        "text": "Postinumero",
+        "language_code": "fi",
+        "purpose": "Short"
+      }
+    ],
+    "constraints": [
+      {
+        "type": "regex",
+        "pattern": "^\\d{5}(-\\d{4})?$"
+      }
+    ]
+  },
+  "comments": {
+    "name": "comments",
+    "data_type": "text",
+    "description": "Additional comments from the participant",
+    "reference": "",
+    "labels": [
+      {
+        "text": "Comments",
+        "language_code": "en",
+        "purpose": "Short"
+      },
+      {
+        "text": "Additional comments",
+        "language_code": "en",
+        "purpose": "Long"
+      },
+      {
+        "text": "Kommentit",
+        "language_code": "fi",
+        "purpose": "Short"
+      },
+      {
+        "text": "Lisäkommentit",
+        "language_code": "fi",
+        "purpose": "Long"
+      }
+    ],
+    "constraints": []
+  }
+}
