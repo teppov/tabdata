@@ -2,7 +2,7 @@
 
 [![Test Coverage](https://img.shields.io/badge/coverage-79%25-orange)](docs/test_coverage.md)
 
-A pure Python package for managing variables for a tabular dataset.
+A pure Python package for managing variables for tabular datasets.
 
 ## Installation
 
