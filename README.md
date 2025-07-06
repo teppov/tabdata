@@ -12,11 +12,11 @@ pip install .
 
 ## Usage
 
-TabData provides a command-line interface for managing variables, category sets, categories, and labels. It can also be used programmatically in Python scripts.
+**varman** provides a command-line interface for managing variables, category sets, categories, and labels. It can also be used programmatically in Python scripts.
 
 ### Programmatic Usage
 
-While TabData provides a command-line interface, you can also use it programmatically in your Python scripts:
+While **varman** provides a command-line interface, you can also use it programmatically in your Python scripts:
 
 ```python
 from varman import Variable, CategorySet, create_variable, import_variables
