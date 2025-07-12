@@ -1,6 +1,7 @@
 """Command-line interface for variables."""
 
 import argparse
+import json
 import sys
 import os
 from typing import List, Optional
@@ -151,51 +152,57 @@ def list_variables_command(args):
 
 def show_variable_command(args):
     """Show details of a variable."""
+
     variable = Variable.get_by("name", args.name)
     if not variable:
         print(f"Error: Variable '{args.name}' does not exist.")
         return
 
-    print(f"Name: {variable.name}")
-    print(f"Type: {variable.data_type}")
+    if args.json:
+        print(json.dumps(variable.to_dict(), indent=4))
 
-    if variable.description:
-        print(f"Description: {variable.description}")
+    else:
 
-    if variable.reference:
-        print(f"Reference: {variable.reference}")
+        print(f"Name: {variable.name}")
+        print(f"Type: {variable.data_type}")
 
-    if variable.category_set_id:
-        print("Categories:")
-        for category in variable.category_set.categories:
-            print(f"  {category.name}")
+        if variable.description:
+            print(f"Description: {variable.description}")
 
-    if variable.labels:
-        print("Labels:")
-        for label in variable.labels:
-            if label.purpose:
-                print(f"  {label.language_code or label.language} ({label.purpose}): {label.text}")
-            else:
-                print(f"  {label.language_code or label.language}: {label.text}")
+        if variable.reference:
+            print(f"Reference: {variable.reference}")
 
-    if variable.constraints:
-        print("Constraints:")
-        for constraint in variable.constraints:
-            constraint_dict = constraint.to_dict()
-            constraint_type = constraint_dict["type"]
+        if variable.category_set_id:
+            print("Categories:")
+            for category in variable.category_set.categories:
+                print(f"  {category.name}")
 
-            if constraint_type == "min_value":
-                print(f"  Minimum value: {constraint_dict['min_value']}")
-            elif constraint_type == "max_value":
-                print(f"  Maximum value: {constraint_dict['max_value']}")
-            elif constraint_type == "email":
-                print(f"  Must be a valid email address")
-            elif constraint_type == "url":
-                print(f"  Must be a valid URL")
-            elif constraint_type == "regex":
-                print(f"  Must match pattern: {constraint_dict['pattern']}")
-            else:
-                print(f"  {constraint_type}: {constraint_dict}")
+        if variable.labels:
+            print("Labels:")
+            for label in variable.labels:
+                if label.purpose:
+                    print(f"  {label.language_code or label.language} ({label.purpose}): {label.text}")
+                else:
+                    print(f"  {label.language_code or label.language}: {label.text}")
+
+        if variable.constraints:
+            print("Constraints:")
+            for constraint in variable.constraints:
+                constraint_dict = constraint.to_dict()
+                constraint_type = constraint_dict["type"]
+
+                if constraint_type == "min_value":
+                    print(f"  Minimum value: {constraint_dict['min_value']}")
+                elif constraint_type == "max_value":
+                    print(f"  Maximum value: {constraint_dict['max_value']}")
+                elif constraint_type == "email":
+                    print(f"  Must be a valid email address")
+                elif constraint_type == "url":
+                    print(f"  Must be a valid URL")
+                elif constraint_type == "regex":
+                    print(f"  Must match pattern: {constraint_dict['pattern']}")
+                else:
+                    print(f"  {constraint_type}: {constraint_dict}")
 
 
 def update_variable_command(args):
@@ -361,6 +368,7 @@ def import_variables_command(args):
 
 def setup_variable_parser(subparsers):
     """Set up the variable command parser."""
+
     # Variable command group
     variable_parser = subparsers.add_parser("variable", help="Manage variables")
     variable_subparsers = variable_parser.add_subparsers(dest="subcommand", help="Variable commands")
@@ -395,8 +403,9 @@ def setup_variable_parser(subparsers):
     list_parser.set_defaults(func=list_variables_command)
 
     # Show command
-    show_parser = variable_subparsers.add_parser("show", help="Show details of a variable")
+    show_parser = variable_subparsers.add_parser("show", help="Show the details of a variable")
     show_parser.add_argument("name", help="Variable name")
+    show_parser.add_argument("--json", "-j", help="Show the details in JSON format", action="store_true")
     show_parser.set_defaults(func=show_variable_command)
 
     # Update command
