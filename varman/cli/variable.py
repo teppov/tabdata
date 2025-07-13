@@ -158,7 +158,7 @@ def show_variable_command(args):
         print(f"Error: Variable '{args.name}' does not exist.")
         return
 
-    if args.json:
+    if args.json is True:
         print(json.dumps(variable.to_dict(), indent=4))
 
     else:
