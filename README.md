@@ -311,6 +311,175 @@ if errors:
             print(f"  {error['field']}: {error['message']}")
 ```
 
+### Bulk Operations
+
+**varman** provides bulk operations for efficiently managing multiple variables, category sets, and categories in a single transaction. This is particularly useful for web applications that need to process multiple records simultaneously.
+
+#### Bulk Variable Operations
+
+Create multiple variables in a single transaction:
+
+```python
+from varman import api
+
+# Prepare data for multiple variables
+variables_data = [
+    {"name": "age", "data_type": "discrete", "description": "Age in years"},
+    {"name": "height", "data_type": "continuous", "description": "Height in cm"},
+    {"name": "weight", "data_type": "continuous", "description": "Weight in kg"}
+]
+
+# Create all variables in a single transaction
+successful, errors = api.bulk_create_variables(variables_data)
+
+# Check results
+print(f"Successfully created {len(successful)} variables")
+if errors:
+    print(f"Failed to create {len(errors)} variables")
+    for error in errors:
+        print(f"Error: {error['error']} for data: {error['data']}")
+```
+
+Create multiple categorical variables with their category sets:
+
+```python
+from varman import api
+
+# Prepare data for categorical variables
+categorical_variables = [
+    {
+        "name": "gender", 
+        "data_type": "nominal", 
+        "category_names": ["male", "female", "other"],
+        "description": "Gender of respondent"
+    },
+    {
+        "name": "education", 
+        "data_type": "ordinal", 
+        "category_names": ["primary", "secondary", "tertiary"],
+        "reference": "Education level"
+    }
+]
+
+# Create all categorical variables in a single transaction
+successful, errors = api.bulk_create_categorical_variables(categorical_variables)
+```
+
+Update multiple variables:
+
+```python
+from varman import api
+
+# Prepare update data
+update_data = [
+    {"id": 1, "description": "Updated description for variable 1"},
+    {"id": 2, "reference": "Updated reference for variable 2"}
+]
+
+# Update all variables in a single transaction
+updated, errors = api.bulk_update_variables(update_data)
+```
+
+Delete multiple variables:
+
+```python
+from varman import api
+
+# Delete variables by ID
+deleted_ids, errors = api.bulk_delete_variables([1, 2, 3])
+```
+
+#### Bulk Category Set Operations
+
+Create multiple category sets with their categories:
+
+```python
+from varman import api
+
+# Prepare data for category sets
+category_sets_data = [
+    {
+        "name": "colors", 
+        "category_names": ["red", "green", "blue"]
+    },
+    {
+        "name": "sizes", 
+        "category_names": ["small", "medium", "large"]
+    }
+]
+
+# Create all category sets in a single transaction
+successful, errors = api.bulk_create_category_sets(category_sets_data)
+```
+
+Update and delete operations are also available:
+
+```python
+# Update category sets
+updated, errors = api.bulk_update_category_sets([
+    {"id": 1, "name": "updated_colors"}
+])
+
+# Delete category sets
+deleted_ids, errors = api.bulk_delete_category_sets([1, 2])
+```
+
+#### Bulk Category Operations
+
+Create multiple categories with labels:
+
+```python
+from varman import api
+
+# Prepare data for categories
+categories_data = [
+    {
+        "name": "red", 
+        "category_set_id": 1,
+        "labels": [
+            {"text": "Red", "language_code": "en"},
+            {"text": "Rouge", "language_code": "fr"}
+        ]
+    },
+    {
+        "name": "blue", 
+        "category_set_id": 1,
+        "labels": [
+            {"text": "Blue", "language_code": "en"},
+            {"text": "Bleu", "language_code": "fr"}
+        ]
+    }
+]
+
+# Create all categories in a single transaction
+successful, errors = api.bulk_create_categories(categories_data)
+```
+
+Update and delete operations:
+
+```python
+# Update categories
+updated, errors = api.bulk_update_categories([
+    {"id": 1, "name": "dark_red"}
+])
+
+# Delete categories
+deleted_ids, errors = api.bulk_delete_categories([1, 2])
+```
+
+#### Error Handling and Transactions
+
+All bulk operations use database transactions to ensure atomicity. By default, if an error occurs during processing, the operation continues with the remaining items. You can change this behavior with the `stop_on_error` parameter:
+
+```python
+# Stop processing and rollback on first error
+successful, errors = api.bulk_create_variables(variables_data, stop_on_error=True)
+```
+
+Each bulk operation returns a tuple containing:
+- A list of successfully processed items (model instances or IDs)
+- A list of errors with details about what went wrong
+
 ### Category Sets
 
 #### Creating Category Sets

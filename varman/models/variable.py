@@ -309,13 +309,12 @@ class Variable(BaseModel):
         """
         if data_type not in cls.CATEGORICAL_TYPES:
             raise ValueError(f"Data type must be one of {cls.CATEGORICAL_TYPES}, got {data_type}")
-
+            
         if connection is None:
             connection = get_connection()
 
         # Create a category set with the same name as the variable
         from varman.models.category_set import CategorySet
-
         category_set = CategorySet.create_with_categories(name, category_names, connection)
 
         # Create the variable
@@ -329,6 +328,269 @@ class Variable(BaseModel):
         )
 
         return variable, errors
+            
+    @classmethod
+    def bulk_create_with_validation(cls, 
+                                   items_data: List[Dict[str, Any]],
+                                   stop_on_error: bool = False,
+                                   connection: Optional[sqlite3.Connection] = None) -> Tuple[List['Variable'], List[Dict[str, Any]]]:
+        """Create multiple variables with validation in a single transaction.
+        
+        Args:
+            items_data: List of dictionaries containing variable data.
+            stop_on_error: If True, stop processing and rollback on first error.
+                          If False, continue processing remaining items (default: False).
+            connection: SQLite connection. If None, a new connection is created.
+            
+        Returns:
+            A tuple containing:
+                - A list of created Variable instances
+                - A list of dictionaries containing error details and original data
+                
+        Example:
+            >>> data = [
+            ...     {"name": "var1", "data_type": "numeric", "description": "First variable"},
+            ...     {"name": "var2", "data_type": "text", "reference": "Some reference"}
+            ... ]
+            >>> successful, errors = Variable.bulk_create_with_validation(data)
+        """
+        if connection is None:
+            connection = get_connection()
+            close_connection = True
+        else:
+            close_connection = False
+            
+        successful_items = []
+        errors = []
+        
+        # Start transaction
+        connection.execute("BEGIN TRANSACTION")
+        
+        try:
+            for item_data in items_data:
+                try:
+                    # Validate data
+                    validation_result = cls.validate_data(item_data)
+                    if not validation_result.is_valid:
+                        error = {
+                            "data": item_data,
+                            "errors": validation_result.errors
+                        }
+                        errors.append(error)
+                        if stop_on_error:
+                            raise ValueError(f"Validation failed: {validation_result.errors}")
+                        continue
+                    
+                    # Create the variable
+                    variable = cls.create(item_data, connection)
+                    
+                    # Handle labels if present
+                    if "labels" in item_data and item_data["labels"]:
+                        for label_data in item_data["labels"]:
+                            variable.add_label(
+                                text=label_data["text"],
+                                language_code=label_data.get("language_code"),
+                                language=label_data.get("language"),
+                                purpose=label_data.get("purpose"),
+                                connection=connection
+                            )
+                    
+                    # Handle constraints if present
+                    if "constraints" in item_data and item_data["constraints"]:
+                        for constraint_data in item_data["constraints"]:
+                            constraint = constraint_from_dict(constraint_data)
+                            variable.add_constraint(constraint, connection)
+                    
+                    successful_items.append(variable)
+                    
+                except Exception as e:
+                    error = {
+                        "data": item_data,
+                        "error": str(e)
+                    }
+                    errors.append(error)
+                    if stop_on_error:
+                        raise
+            
+            # Commit transaction if no errors or stop_on_error is False
+            connection.commit()
+            
+        except Exception as e:
+            # Rollback transaction on error if stop_on_error is True
+            connection.rollback()
+            if not errors:  # Add the error if it's not already in the errors list
+                errors.append({
+                    "data": None,
+                    "error": str(e)
+                })
+        finally:
+            if close_connection:
+                connection.close()
+                
+        return successful_items, errors
+        
+    @classmethod
+    def bulk_create_categorical(cls, 
+                              items_data: List[Dict[str, Any]],
+                              stop_on_error: bool = False,
+                              connection: Optional[sqlite3.Connection] = None) -> Tuple[List['Variable'], List[Dict[str, Any]]]:
+        """Create multiple categorical variables with new category sets in a single transaction.
+        
+        Args:
+            items_data: List of dictionaries containing variable data with category_names.
+                       Each dictionary should contain:
+                       - name: The name of the variable
+                       - data_type: The data type (must be "nominal" or "ordinal")
+                       - category_names: A list of category names
+                       - description (optional): A description of the variable
+                       - reference (optional): A reference for the variable
+            stop_on_error: If True, stop processing and rollback on first error.
+                          If False, continue processing remaining items (default: False).
+            connection: SQLite connection. If None, a new connection is created.
+            
+        Returns:
+            A tuple containing:
+                - A list of created Variable instances
+                - A list of dictionaries containing error details and original data
+                
+        Example:
+            >>> data = [
+            ...     {
+            ...         "name": "gender", 
+            ...         "data_type": "nominal", 
+            ...         "category_names": ["male", "female", "other"],
+            ...         "description": "Gender of respondent"
+            ...     },
+            ...     {
+            ...         "name": "education", 
+            ...         "data_type": "ordinal", 
+            ...         "category_names": ["primary", "secondary", "tertiary"],
+            ...         "reference": "Education level"
+            ...     }
+            ... ]
+            >>> successful, errors = Variable.bulk_create_categorical(data)
+        """
+        if connection is None:
+            connection = get_connection()
+            close_connection = True
+        else:
+            close_connection = False
+            
+        successful_items = []
+        errors = []
+        
+        # Start transaction
+        connection.execute("BEGIN TRANSACTION")
+        
+        try:
+            for item_data in items_data:
+                try:
+                    # Check required fields
+                    if "name" not in item_data or not item_data["name"]:
+                        error = {
+                            "data": item_data,
+                            "error": "Name is required"
+                        }
+                        errors.append(error)
+                        if stop_on_error:
+                            raise ValueError("Name is required")
+                        continue
+                        
+                    if "data_type" not in item_data or not item_data["data_type"]:
+                        error = {
+                            "data": item_data,
+                            "error": "Data type is required"
+                        }
+                        errors.append(error)
+                        if stop_on_error:
+                            raise ValueError("Data type is required")
+                        continue
+                        
+                    if "category_names" not in item_data or not item_data["category_names"]:
+                        error = {
+                            "data": item_data,
+                            "error": "Category names are required"
+                        }
+                        errors.append(error)
+                        if stop_on_error:
+                            raise ValueError("Category names are required")
+                        continue
+                    
+                    # Check data type
+                    if item_data["data_type"] not in cls.CATEGORICAL_TYPES:
+                        error = {
+                            "data": item_data,
+                            "error": f"Data type must be one of {cls.CATEGORICAL_TYPES}, got {item_data['data_type']}"
+                        }
+                        errors.append(error)
+                        if stop_on_error:
+                            raise ValueError(f"Data type must be one of {cls.CATEGORICAL_TYPES}, got {item_data['data_type']}")
+                        continue
+                    
+                    # Create the categorical variable
+                    variable, validation_errors = cls.create_categorical(
+                        name=item_data["name"],
+                        data_type=item_data["data_type"],
+                        category_names=item_data["category_names"],
+                        description=item_data.get("description"),
+                        reference=item_data.get("reference"),
+                        connection=connection
+                    )
+                    
+                    if validation_errors:
+                        error = {
+                            "data": item_data,
+                            "errors": validation_errors
+                        }
+                        errors.append(error)
+                        if stop_on_error:
+                            raise ValueError(f"Validation failed: {validation_errors}")
+                        continue
+                    
+                    # Handle labels if present
+                    if "labels" in item_data and item_data["labels"]:
+                        for label_data in item_data["labels"]:
+                            variable.add_label(
+                                text=label_data["text"],
+                                language_code=label_data.get("language_code"),
+                                language=label_data.get("language"),
+                                purpose=label_data.get("purpose"),
+                                connection=connection
+                            )
+                    
+                    # Handle constraints if present
+                    if "constraints" in item_data and item_data["constraints"]:
+                        for constraint_data in item_data["constraints"]:
+                            constraint = constraint_from_dict(constraint_data)
+                            variable.add_constraint(constraint, connection)
+                    
+                    successful_items.append(variable)
+                    
+                except Exception as e:
+                    error = {
+                        "data": item_data,
+                        "error": str(e)
+                    }
+                    errors.append(error)
+                    if stop_on_error:
+                        raise
+            
+            # Commit transaction if no errors or stop_on_error is False
+            connection.commit()
+            
+        except Exception as e:
+            # Rollback transaction on error if stop_on_error is True
+            connection.rollback()
+            if not errors:  # Add the error if it's not already in the errors list
+                errors.append({
+                    "data": None,
+                    "error": str(e)
+                })
+        finally:
+            if close_connection:
+                connection.close()
+                
+        return successful_items, errors
 
     def add_label(self, text: str, language_code: Optional[str] = None, language: Optional[str] = None,
                  purpose: Optional[str] = None, connection: Optional[sqlite3.Connection] = None) -> 'Label':

@@ -1,7 +1,7 @@
 """Category model for varman."""
 
 import sqlite3
-from typing import Dict, List, Optional, Any
+from typing import Dict, List, Optional, Any, Tuple
 
 from varman.db.connection import get_connection
 from varman.models.base import BaseModel
@@ -165,3 +165,120 @@ class Category(BaseModel):
         result = super().to_dict()
         result["labels"] = [label.to_dict() for label in self.labels]
         return result
+        
+    @classmethod
+    def bulk_create_with_labels(cls, 
+                              items_data: List[Dict[str, Any]],
+                              validate: bool = True,
+                              stop_on_error: bool = False,
+                              connection: Optional[sqlite3.Connection] = None) -> Tuple[List['Category'], List[Dict[str, Any]]]:
+        """Create multiple categories with labels in a single transaction.
+        
+        Args:
+            items_data: List of dictionaries containing category data with optional labels.
+                       Each dictionary should contain:
+                       - name: The name of the category
+                       - category_set_id: The ID of the category set
+                       - labels (optional): A list of label dictionaries
+            validate: Whether to validate data before processing (default: True).
+            stop_on_error: If True, stop processing and rollback on first error.
+                          If False, continue processing remaining items (default: False).
+            connection: SQLite connection. If None, a new connection is created.
+            
+        Returns:
+            A tuple containing:
+                - A list of created Category instances
+                - A list of dictionaries containing error details and original data
+                
+        Example:
+            >>> data = [
+            ...     {
+            ...         "name": "male", 
+            ...         "category_set_id": 1,
+            ...         "labels": [
+            ...             {"text": "Male", "language_code": "en"},
+            ...             {"text": "Homme", "language_code": "fr"}
+            ...         ]
+            ...     },
+            ...     {
+            ...         "name": "female", 
+            ...         "category_set_id": 1,
+            ...         "labels": [
+            ...             {"text": "Female", "language_code": "en"},
+            ...             {"text": "Femme", "language_code": "fr"}
+            ...         ]
+            ...     }
+            ... ]
+            >>> successful, errors = Category.bulk_create_with_labels(data)
+        """
+        if connection is None:
+            connection = get_connection()
+            close_connection = True
+        else:
+            close_connection = False
+            
+        successful_items = []
+        errors = []
+        
+        # Start transaction
+        connection.execute("BEGIN TRANSACTION")
+        
+        try:
+            for item_data in items_data:
+                try:
+                    # Validate data if required
+                    if validate:
+                        validation_result = cls.validate_data(item_data)
+                        if not validation_result.is_valid:
+                            error = {
+                                "data": item_data,
+                                "errors": validation_result.errors
+                            }
+                            errors.append(error)
+                            if stop_on_error:
+                                raise ValueError(f"Validation failed: {validation_result.errors}")
+                            continue
+                    
+                    # Extract labels if present
+                    labels_data = item_data.pop("labels", []) if "labels" in item_data else []
+                    
+                    # Create the category
+                    category = cls.create(item_data, connection)
+                    
+                    # Add labels if present
+                    for label_data in labels_data:
+                        category.add_label(
+                            text=label_data["text"],
+                            language_code=label_data.get("language_code"),
+                            language=label_data.get("language"),
+                            purpose=label_data.get("purpose"),
+                            connection=connection
+                        )
+                    
+                    successful_items.append(category)
+                    
+                except Exception as e:
+                    error = {
+                        "data": item_data,
+                        "error": str(e)
+                    }
+                    errors.append(error)
+                    if stop_on_error:
+                        raise
+            
+            # Commit transaction if no errors or stop_on_error is False
+            connection.commit()
+            
+        except Exception as e:
+            # Rollback transaction on error if stop_on_error is True
+            connection.rollback()
+            if not errors:  # Add the error if it's not already in the errors list
+                errors.append({
+                    "data": None,
+                    "error": str(e)
+                })
+        finally:
+            if close_connection:
+                connection.close()
+                
+        return successful_items, errors

@@ -1,7 +1,7 @@
 """CategorySet model for varman."""
 
 import sqlite3
-from typing import Dict, List, Optional, Any
+from typing import Dict, List, Optional, Any, Tuple
 
 from varman.db.connection import get_connection
 from varman.models.base import BaseModel
@@ -192,3 +192,120 @@ class CategorySet(BaseModel):
         result = super().to_dict()
         result["categories"] = [category.to_dict() for category in self.categories]
         return result
+        
+    @classmethod
+    def bulk_create_with_categories(cls, 
+                                  items_data: List[Dict[str, Any]],
+                                  stop_on_error: bool = False,
+                                  connection: Optional[sqlite3.Connection] = None) -> Tuple[List['CategorySet'], List[Dict[str, Any]]]:
+        """Create multiple category sets with categories in a single transaction.
+        
+        Args:
+            items_data: List of dictionaries containing category set data.
+                       Each dictionary should contain:
+                       - name: The name of the category set
+                       - category_names: A list of category names
+            stop_on_error: If True, stop processing and rollback on first error.
+                          If False, continue processing remaining items (default: False).
+            connection: SQLite connection. If None, a new connection is created.
+            
+        Returns:
+            A tuple containing:
+                - A list of created CategorySet instances
+                - A list of dictionaries containing error details and original data
+                
+        Example:
+            >>> data = [
+            ...     {
+            ...         "name": "gender", 
+            ...         "category_names": ["male", "female", "other"]
+            ...     },
+            ...     {
+            ...         "name": "education", 
+            ...         "category_names": ["primary", "secondary", "tertiary"]
+            ...     }
+            ... ]
+            >>> successful, errors = CategorySet.bulk_create_with_categories(data)
+        """
+        
+        if connection is None:
+            connection = get_connection()
+            close_connection = True
+        else:
+            close_connection = False
+            
+        successful_items = []
+        errors = []
+        
+        # Start transaction
+        connection.execute("BEGIN TRANSACTION")
+        
+        try:
+            for item_data in items_data:
+                try:
+                    # Check required fields
+                    if "name" not in item_data or not item_data["name"]:
+                        error = {
+                            "data": item_data,
+                            "error": "Name is required"
+                        }
+                        errors.append(error)
+                        if stop_on_error:
+                            raise ValueError("Name is required")
+                        continue
+                        
+                    if "category_names" not in item_data or not item_data["category_names"]:
+                        error = {
+                            "data": item_data,
+                            "error": "Category names are required"
+                        }
+                        errors.append(error)
+                        if stop_on_error:
+                            raise ValueError("Category names are required")
+                        continue
+                    
+                    # Validate name
+                    if not validate_name(item_data["name"]):
+                        error = {
+                            "data": item_data,
+                            "error": "Name must be a valid Python identifier and lowercase"
+                        }
+                        errors.append(error)
+                        if stop_on_error:
+                            raise ValueError("Name must be a valid Python identifier and lowercase")
+                        continue
+                    
+                    # Create the category set with categories
+                    category_set = cls.create_with_categories(
+                        name=item_data["name"],
+                        category_names=item_data["category_names"],
+                        connection=connection
+                    )
+                    
+                    successful_items.append(category_set)
+                    
+                except Exception as e:
+                    error = {
+                        "data": item_data,
+                        "error": str(e)
+                    }
+                    errors.append(error)
+                    if stop_on_error:
+                        raise
+            
+            # Commit transaction if no errors or stop_on_error is False
+            connection.commit()
+            
+        except Exception as e:
+            # Rollback transaction on error if stop_on_error is True
+            connection.rollback()
+            if not errors:  # Add the error if it's not already in the errors list
+                errors.append({
+                    "data": None,
+                    "error": str(e)
+                })
+        finally:
+            if close_connection:
+                connection.close()
+                
+        return successful_items, errors
