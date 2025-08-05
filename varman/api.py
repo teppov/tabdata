@@ -6,22 +6,57 @@ from typing import List, Dict, Any, Optional, Tuple
 from varman.models.variable import Variable
 from varman.models.category_set import CategorySet
 from varman.models.category import Category
+from varman.utils.logging import get_logger
+
+# Initialize logger
+logger = get_logger(__name__)
 
 def create_variable(name: str, data_type: str, **kwargs) -> Variable:
     """Create a variable with the given name and data type."""
-    return Variable.create_with_validation(name=name, data_type=data_type, **kwargs)
+    logger.info(f"Creating variable: name='{name}', data_type='{data_type}', kwargs={kwargs}")
+    try:
+        variable = Variable.create_with_validation(name=name, data_type=data_type, **kwargs)
+        logger.info(f"Created variable: {variable.id} - {variable.name}")
+        return variable
+    except Exception as e:
+        logger.error(f"Error creating variable '{name}': {str(e)}")
+        raise
 
 def create_categorical_variable(name: str, data_type: str, categories: List[str], **kwargs) -> Variable:
     """Create a categorical variable with the given name, data type, and categories."""
-    return Variable.create_categorical(name=name, data_type=data_type, category_names=categories, **kwargs)
+    logger.info(f"Creating categorical variable: name='{name}', data_type='{data_type}', categories={categories}, kwargs={kwargs}")
+    try:
+        variable = Variable.create_categorical(name=name, data_type=data_type, category_names=categories, **kwargs)
+        logger.info(f"Created categorical variable: {variable.id} - {variable.name} with {len(categories)} categories")
+        return variable
+    except Exception as e:
+        logger.error(f"Error creating categorical variable '{name}': {str(e)}")
+        raise
 
 def get_variable(name: str) -> Optional[Variable]:
     """Get a variable by name."""
-    return Variable.get_by("name", name)
+    logger.debug(f"Getting variable by name: '{name}'")
+    try:
+        variable = Variable.get_by("name", name)
+        if variable:
+            logger.debug(f"Found variable: {variable.id} - {variable.name}")
+        else:
+            logger.debug(f"Variable not found: '{name}'")
+        return variable
+    except Exception as e:
+        logger.error(f"Error getting variable '{name}': {str(e)}")
+        raise
 
 def list_variables() -> List[Variable]:
     """List all variables."""
-    return Variable.get_all()
+    logger.debug("Listing all variables")
+    try:
+        variables = Variable.get_all()
+        logger.debug(f"Found {len(variables)} variables")
+        return variables
+    except Exception as e:
+        logger.error(f"Error listing variables: {str(e)}")
+        raise
 
 def list_variables_paginated(page: int = 1, page_size: int = 20, 
                            filters: Optional[Dict[str, Any]] = None,
@@ -47,7 +82,16 @@ def list_variables_paginated(page: int = 1, page_size: int = 20,
         ValueError: If page < 1, page_size <= 0, sort_by is not a valid column,
                    or sort_order is not "asc" or "desc".
     """
-    return Variable.get_paginated(page, page_size, filters, sort_by, sort_order, search)
+    logger.debug(f"Listing variables with pagination: page={page}, page_size={page_size}, "
+                f"filters={filters}, sort_by={sort_by}, sort_order={sort_order}, search={search}")
+    try:
+        variables, total = Variable.get_paginated(page, page_size, filters, sort_by, sort_order, search)
+        logger.debug(f"Found {len(variables)} variables (page {page} of {(total + page_size - 1) // page_size}), "
+                    f"total: {total}")
+        return variables, total
+    except Exception as e:
+        logger.error(f"Error listing variables with pagination: {str(e)}")
+        raise
 
 def list_category_sets_paginated(page: int = 1, page_size: int = 20, 
                                filters: Optional[Dict[str, Any]] = None,
@@ -73,7 +117,16 @@ def list_category_sets_paginated(page: int = 1, page_size: int = 20,
         ValueError: If page < 1, page_size <= 0, sort_by is not a valid column,
                    or sort_order is not "asc" or "desc".
     """
-    return CategorySet.get_paginated(page, page_size, filters, sort_by, sort_order, search)
+    logger.debug(f"Listing category sets with pagination: page={page}, page_size={page_size}, "
+                f"filters={filters}, sort_by={sort_by}, sort_order={sort_order}, search={search}")
+    try:
+        category_sets, total = CategorySet.get_paginated(page, page_size, filters, sort_by, sort_order, search)
+        logger.debug(f"Found {len(category_sets)} category sets (page {page} of {(total + page_size - 1) // page_size}), "
+                    f"total: {total}")
+        return category_sets, total
+    except Exception as e:
+        logger.error(f"Error listing category sets with pagination: {str(e)}")
+        raise
 
 def list_categories_paginated(page: int = 1, page_size: int = 20, 
                             filters: Optional[Dict[str, Any]] = None,
@@ -101,17 +154,45 @@ def list_categories_paginated(page: int = 1, page_size: int = 20,
         ValueError: If page < 1, page_size <= 0, sort_by is not a valid column,
                    or sort_order is not "asc" or "desc".
     """
-    return Category.get_paginated(page, page_size, filters, sort_by, sort_order, search, category_set_id)
+    logger.debug(f"Listing categories with pagination: page={page}, page_size={page_size}, "
+                f"filters={filters}, sort_by={sort_by}, sort_order={sort_order}, "
+                f"search={search}, category_set_id={category_set_id}")
+    try:
+        categories, total = Category.get_paginated(page, page_size, filters, sort_by, sort_order, search, category_set_id)
+        logger.debug(f"Found {len(categories)} categories (page {page} of {(total + page_size - 1) // page_size}), "
+                    f"total: {total}")
+        return categories, total
+    except Exception as e:
+        logger.error(f"Error listing categories with pagination: {str(e)}")
+        raise
 
 def import_variables(file_path: str, overwrite: bool = False) -> Tuple[List[Variable], List[str], List[str]]:
     """Import variables from a JSON file."""
-    return Variable.import_from_json(file_path, overwrite)
+    logger.info(f"Importing variables from file: {file_path}, overwrite={overwrite}")
+    try:
+        imported, skipped, errors = Variable.import_from_json(file_path, overwrite)
+        logger.info(f"Imported {len(imported)} variables, skipped {len(skipped)}, errors {len(errors)}")
+        if errors:
+            logger.warning(f"Import errors: {errors}")
+        return imported, skipped, errors
+    except Exception as e:
+        logger.error(f"Error importing variables from {file_path}: {str(e)}")
+        raise
 
 def export_variables(file_path: str, variables: Optional[List[Variable]] = None) -> None:
     """Export variables to a JSON file."""
-    if variables is None:
-        variables = Variable.get_all()
-    Variable.export_to_json(variables, file_path)
+    try:
+        if variables is None:
+            logger.info(f"Exporting all variables to file: {file_path}")
+            variables = Variable.get_all()
+        else:
+            logger.info(f"Exporting {len(variables)} variables to file: {file_path}")
+        
+        Variable.export_to_json(variables, file_path)
+        logger.info(f"Successfully exported {len(variables)} variables to {file_path}")
+    except Exception as e:
+        logger.error(f"Error exporting variables to {file_path}: {str(e)}")
+        raise
 
 # Bulk operations for variables
 
@@ -128,7 +209,16 @@ def bulk_create_variables(variables_data: List[Dict[str, Any]], stop_on_error: b
             - A list of created Variable instances
             - A list of dictionaries containing error details and original data
     """
-    return Variable.bulk_create_with_validation(variables_data, stop_on_error=stop_on_error)
+    logger.info(f"Bulk creating {len(variables_data)} variables, stop_on_error={stop_on_error}")
+    try:
+        successful, errors = Variable.bulk_create_with_validation(variables_data, stop_on_error=stop_on_error)
+        logger.info(f"Bulk created {len(successful)} variables successfully, {len(errors)} errors")
+        if errors:
+            logger.warning(f"Errors during bulk variable creation: {errors}")
+        return successful, errors
+    except Exception as e:
+        logger.error(f"Error in bulk_create_variables: {str(e)}")
+        raise
 
 def bulk_create_categorical_variables(variables_data: List[Dict[str, Any]], stop_on_error: bool = False) -> Tuple[List[Variable], List[Dict[str, Any]]]:
     """Create multiple categorical variables with new category sets in a single transaction.
@@ -149,7 +239,16 @@ def bulk_create_categorical_variables(variables_data: List[Dict[str, Any]], stop
             - A list of created Variable instances
             - A list of dictionaries containing error details and original data
     """
-    return Variable.bulk_create_categorical(variables_data, stop_on_error=stop_on_error)
+    logger.info(f"Bulk creating {len(variables_data)} categorical variables, stop_on_error={stop_on_error}")
+    try:
+        successful, errors = Variable.bulk_create_categorical(variables_data, stop_on_error=stop_on_error)
+        logger.info(f"Bulk created {len(successful)} categorical variables successfully, {len(errors)} errors")
+        if errors:
+            logger.warning(f"Errors during bulk categorical variable creation: {errors}")
+        return successful, errors
+    except Exception as e:
+        logger.error(f"Error in bulk_create_categorical_variables: {str(e)}")
+        raise
 
 def bulk_update_variables(variables_data: List[Dict[str, Any]], stop_on_error: bool = False) -> Tuple[List[Variable], List[Dict[str, Any]]]:
     """Update multiple variables in a single transaction.
@@ -164,7 +263,16 @@ def bulk_update_variables(variables_data: List[Dict[str, Any]], stop_on_error: b
             - A list of updated Variable instances
             - A list of dictionaries containing error details and original data
     """
-    return Variable.bulk_update(variables_data, stop_on_error=stop_on_error)
+    logger.info(f"Bulk updating {len(variables_data)} variables, stop_on_error={stop_on_error}")
+    try:
+        successful, errors = Variable.bulk_update(variables_data, stop_on_error=stop_on_error)
+        logger.info(f"Bulk updated {len(successful)} variables successfully, {len(errors)} errors")
+        if errors:
+            logger.warning(f"Errors during bulk variable update: {errors}")
+        return successful, errors
+    except Exception as e:
+        logger.error(f"Error in bulk_update_variables: {str(e)}")
+        raise
 
 def bulk_delete_variables(variable_ids: List[int], stop_on_error: bool = False) -> Tuple[List[int], List[Dict[str, Any]]]:
     """Delete multiple variables in a single transaction.
@@ -179,7 +287,16 @@ def bulk_delete_variables(variable_ids: List[int], stop_on_error: bool = False) 
             - A list of successfully deleted variable IDs
             - A list of dictionaries containing error details and original data
     """
-    return Variable.bulk_delete(variable_ids, stop_on_error=stop_on_error)
+    logger.info(f"Bulk deleting {len(variable_ids)} variables, stop_on_error={stop_on_error}")
+    try:
+        successful, errors = Variable.bulk_delete(variable_ids, stop_on_error=stop_on_error)
+        logger.info(f"Bulk deleted {len(successful)} variables successfully, {len(errors)} errors")
+        if errors:
+            logger.warning(f"Errors during bulk variable deletion: {errors}")
+        return successful, errors
+    except Exception as e:
+        logger.error(f"Error in bulk_delete_variables: {str(e)}")
+        raise
 
 # Bulk operations for category sets
 
@@ -199,7 +316,16 @@ def bulk_create_category_sets(category_sets_data: List[Dict[str, Any]], stop_on_
             - A list of created CategorySet instances
             - A list of dictionaries containing error details and original data
     """
-    return CategorySet.bulk_create_with_categories(category_sets_data, stop_on_error=stop_on_error)
+    logger.info(f"Bulk creating {len(category_sets_data)} category sets, stop_on_error={stop_on_error}")
+    try:
+        successful, errors = CategorySet.bulk_create_with_categories(category_sets_data, stop_on_error=stop_on_error)
+        logger.info(f"Bulk created {len(successful)} category sets successfully, {len(errors)} errors")
+        if errors:
+            logger.warning(f"Errors during bulk category set creation: {errors}")
+        return successful, errors
+    except Exception as e:
+        logger.error(f"Error in bulk_create_category_sets: {str(e)}")
+        raise
 
 def bulk_update_category_sets(category_sets_data: List[Dict[str, Any]], stop_on_error: bool = False) -> Tuple[List[CategorySet], List[Dict[str, Any]]]:
     """Update multiple category sets in a single transaction.
@@ -214,7 +340,16 @@ def bulk_update_category_sets(category_sets_data: List[Dict[str, Any]], stop_on_
             - A list of updated CategorySet instances
             - A list of dictionaries containing error details and original data
     """
-    return CategorySet.bulk_update(category_sets_data, stop_on_error=stop_on_error)
+    logger.info(f"Bulk updating {len(category_sets_data)} category sets, stop_on_error={stop_on_error}")
+    try:
+        successful, errors = CategorySet.bulk_update(category_sets_data, stop_on_error=stop_on_error)
+        logger.info(f"Bulk updated {len(successful)} category sets successfully, {len(errors)} errors")
+        if errors:
+            logger.warning(f"Errors during bulk category set update: {errors}")
+        return successful, errors
+    except Exception as e:
+        logger.error(f"Error in bulk_update_category_sets: {str(e)}")
+        raise
 
 def bulk_delete_category_sets(category_set_ids: List[int], stop_on_error: bool = False) -> Tuple[List[int], List[Dict[str, Any]]]:
     """Delete multiple category sets in a single transaction.
@@ -229,7 +364,16 @@ def bulk_delete_category_sets(category_set_ids: List[int], stop_on_error: bool =
             - A list of successfully deleted category set IDs
             - A list of dictionaries containing error details and original data
     """
-    return CategorySet.bulk_delete(category_set_ids, stop_on_error=stop_on_error)
+    logger.info(f"Bulk deleting {len(category_set_ids)} category sets, stop_on_error={stop_on_error}")
+    try:
+        successful, errors = CategorySet.bulk_delete(category_set_ids, stop_on_error=stop_on_error)
+        logger.info(f"Bulk deleted {len(successful)} category sets successfully, {len(errors)} errors")
+        if errors:
+            logger.warning(f"Errors during bulk category set deletion: {errors}")
+        return successful, errors
+    except Exception as e:
+        logger.error(f"Error in bulk_delete_category_sets: {str(e)}")
+        raise
 
 # Bulk operations for categories
 
@@ -250,7 +394,16 @@ def bulk_create_categories(categories_data: List[Dict[str, Any]], stop_on_error:
             - A list of created Category instances
             - A list of dictionaries containing error details and original data
     """
-    return Category.bulk_create_with_labels(categories_data, stop_on_error=stop_on_error)
+    logger.info(f"Bulk creating {len(categories_data)} categories, stop_on_error={stop_on_error}")
+    try:
+        successful, errors = Category.bulk_create_with_labels(categories_data, stop_on_error=stop_on_error)
+        logger.info(f"Bulk created {len(successful)} categories successfully, {len(errors)} errors")
+        if errors:
+            logger.warning(f"Errors during bulk category creation: {errors}")
+        return successful, errors
+    except Exception as e:
+        logger.error(f"Error in bulk_create_categories: {str(e)}")
+        raise
 
 def bulk_update_categories(categories_data: List[Dict[str, Any]], stop_on_error: bool = False) -> Tuple[List[Category], List[Dict[str, Any]]]:
     """Update multiple categories in a single transaction.
@@ -265,7 +418,16 @@ def bulk_update_categories(categories_data: List[Dict[str, Any]], stop_on_error:
             - A list of updated Category instances
             - A list of dictionaries containing error details and original data
     """
-    return Category.bulk_update(categories_data, stop_on_error=stop_on_error)
+    logger.info(f"Bulk updating {len(categories_data)} categories, stop_on_error={stop_on_error}")
+    try:
+        successful, errors = Category.bulk_update(categories_data, stop_on_error=stop_on_error)
+        logger.info(f"Bulk updated {len(successful)} categories successfully, {len(errors)} errors")
+        if errors:
+            logger.warning(f"Errors during bulk category update: {errors}")
+        return successful, errors
+    except Exception as e:
+        logger.error(f"Error in bulk_update_categories: {str(e)}")
+        raise
 
 def bulk_delete_categories(category_ids: List[int], stop_on_error: bool = False) -> Tuple[List[int], List[Dict[str, Any]]]:
     """Delete multiple categories in a single transaction.
@@ -280,4 +442,13 @@ def bulk_delete_categories(category_ids: List[int], stop_on_error: bool = False)
             - A list of successfully deleted category IDs
             - A list of dictionaries containing error details and original data
     """
-    return Category.bulk_delete(category_ids, stop_on_error=stop_on_error)
+    logger.info(f"Bulk deleting {len(category_ids)} categories, stop_on_error={stop_on_error}")
+    try:
+        successful, errors = Category.bulk_delete(category_ids, stop_on_error=stop_on_error)
+        logger.info(f"Bulk deleted {len(successful)} categories successfully, {len(errors)} errors")
+        if errors:
+            logger.warning(f"Errors during bulk category deletion: {errors}")
+        return successful, errors
+    except Exception as e:
+        logger.error(f"Error in bulk_delete_categories: {str(e)}")
+        raise
