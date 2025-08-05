@@ -5,6 +5,8 @@ import sqlite3
 from pathlib import Path
 from typing import Optional
 
+from varman.config import get_config
+
 
 class DatabaseManager:
     """Manages the SQLite database connection."""
@@ -13,14 +15,16 @@ class DatabaseManager:
         """Initialize the database manager.
 
         Args:
-            db_path: Path to the SQLite database file. If None, uses the default path.
+            db_path: Path to the SQLite database file. If None, uses the config settings.
         """
         if db_path is None:
-            # Default to a .varman directory in the user's home directory
-            home_dir = Path.home()
-            data_dir = home_dir / ".varman"
-            data_dir.mkdir(exist_ok=True)
-            self.db_path = str(data_dir / "varman.db")
+            # Use the database path from configuration
+            config = get_config()
+            self.db_path = config.get_database_path()
+            
+            # Ensure the directory exists
+            db_dir = os.path.dirname(self.db_path)
+            os.makedirs(db_dir, exist_ok=True)
         else:
             self.db_path = db_path
         
