@@ -167,6 +167,105 @@ class Category(BaseModel):
         return result
         
     @classmethod
+    def get_paginated(cls, page: int = 1, page_size: int = 20, 
+                     filters: Optional[Dict[str, Any]] = None,
+                     sort_by: Optional[str] = None,
+                     sort_order: str = "asc",
+                     search: Optional[str] = None,
+                     category_set_id: Optional[int] = None,
+                     connection: Optional[sqlite3.Connection] = None) -> Tuple[List['Category'], int]:
+        """Get paginated categories with optional filtering, sorting, and text search.
+        
+        Extends the BaseModel.get_paginated method with additional functionality:
+        - Text search in name field
+        - Filtering by category_set_id
+        
+        Args:
+            page: Page number (1-based). Must be >= 1.
+            page_size: Number of records per page. Must be > 0.
+            filters: Dictionary of column-value pairs to filter by.
+            sort_by: Column name to sort by. Must be a valid column in the table schema.
+            sort_order: Sort order, either "asc" or "desc".
+            search: Optional search term to filter by name.
+            category_set_id: Optional category set ID to filter by.
+            connection: SQLite connection. If None, a new connection is created.
+            
+        Returns:
+            A tuple containing:
+                - A list of Category instances for the requested page
+                - The total count of records matching the filters and search
+                
+        Raises:
+            ValueError: If page < 1, page_size <= 0, sort_by is not a valid column,
+                       or sort_order is not "asc" or "desc".
+        """
+        if connection is None:
+            connection = get_connection()
+            
+        # Add category_set_id to filters if provided
+        if category_set_id is not None:
+            if filters is None:
+                filters = {}
+            filters["category_set_id"] = category_set_id
+            
+        # Handle text search in name
+        if search:
+            # Build a custom SQL query with text search
+            where_clauses = []
+            values = []
+            
+            # Add search condition for name
+            where_clauses.append("name LIKE ?")
+            search_term = f"%{search}%"
+            values.append(search_term)
+            
+            # Add filters if provided
+            if filters:
+                for column, value in filters.items():
+                    where_clauses.append(f"{column} = ?")
+                    values.append(value)
+                    
+            where_clause = " AND ".join(where_clauses)
+            
+            # Get total count
+            count_query = f"SELECT COUNT(*) FROM {cls.table_name} WHERE {where_clause}"
+            cursor = connection.cursor()
+            cursor.execute(count_query, values)
+            total_count = cursor.fetchone()[0]
+            
+            # If no results, return empty list and total count
+            if total_count == 0:
+                return [], 0
+                
+            # Build ORDER BY clause if sort_by is provided
+            order_clause = ""
+            if sort_by:
+                order_clause = f"ORDER BY {sort_by} {sort_order.upper()}"
+                
+            # Calculate offset
+            offset = (page - 1) * page_size
+            
+            # Build final query with pagination
+            query = f"""
+                SELECT * FROM {cls.table_name}
+                WHERE {where_clause}
+                {order_clause}
+                LIMIT ? OFFSET ?
+            """
+            
+            # Execute query with pagination
+            values.extend([page_size, offset])
+            cursor.execute(query, values)
+            
+            # Convert rows to model instances
+            results = [cls(**dict(row)) for row in cursor.fetchall()]
+            
+            return results, total_count
+        else:
+            # Use the base implementation for simple filtering
+            return super().get_paginated(page, page_size, filters, sort_by, sort_order, connection)
+        
+    @classmethod
     def bulk_create_with_labels(cls, 
                               items_data: List[Dict[str, Any]],
                               validate: bool = True,

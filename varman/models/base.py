@@ -169,6 +169,95 @@ class BaseModel:
         )
 
         return [cls(**dict(row)) for row in cursor.fetchall()]
+        
+    @classmethod
+    def get_paginated(cls: Type[T], page: int = 1, page_size: int = 20, 
+                     filters: Optional[Dict[str, Any]] = None,
+                     sort_by: Optional[str] = None,
+                     sort_order: str = "asc",
+                     connection: Optional[sqlite3.Connection] = None) -> Tuple[List[T], int]:
+        """Get paginated records with optional filtering and sorting.
+        
+        Args:
+            page: Page number (1-based). Must be >= 1.
+            page_size: Number of records per page. Must be > 0.
+            filters: Dictionary of column-value pairs to filter by.
+            sort_by: Column name to sort by. Must be a valid column in the table schema.
+            sort_order: Sort order, either "asc" or "desc".
+            connection: SQLite connection. If None, a new connection is created.
+            
+        Returns:
+            A tuple containing:
+                - A list of model instances for the requested page
+                - The total count of records matching the filters
+                
+        Raises:
+            ValueError: If page < 1, page_size <= 0, sort_by is not a valid column,
+                       or sort_order is not "asc" or "desc".
+        """
+        # Validate parameters
+        if page < 1:
+            raise ValueError("Page number must be >= 1")
+        if page_size <= 0:
+            raise ValueError("Page size must be > 0")
+        if page_size > 1000:
+            raise ValueError("Page size must be <= 1000")
+        if sort_by is not None and sort_by not in cls.columns and sort_by != cls.id_column:
+            raise ValueError(f"Sort column '{sort_by}' is not a valid column")
+        if sort_order.lower() not in ["asc", "desc"]:
+            raise ValueError("Sort order must be 'asc' or 'desc'")
+            
+        # Get connection
+        if connection is None:
+            connection = get_connection()
+            
+        # Build WHERE clause if filters are provided
+        where_clause = ""
+        values = []
+        
+        if filters:
+            where_clauses = []
+            for column, value in filters.items():
+                where_clauses.append(f"{column} = ?")
+                values.append(value)
+            
+            if where_clauses:
+                where_clause = f"WHERE {' AND '.join(where_clauses)}"
+        
+        # Get total count
+        count_query = f"SELECT COUNT(*) FROM {cls.table_name} {where_clause}"
+        cursor = connection.cursor()
+        cursor.execute(count_query, values)
+        total_count = cursor.fetchone()[0]
+        
+        # If no results, return empty list and total count
+        if total_count == 0:
+            return [], 0
+            
+        # Build ORDER BY clause if sort_by is provided
+        order_clause = ""
+        if sort_by:
+            order_clause = f"ORDER BY {sort_by} {sort_order.upper()}"
+            
+        # Calculate offset
+        offset = (page - 1) * page_size
+        
+        # Build final query with pagination
+        query = f"""
+            SELECT * FROM {cls.table_name}
+            {where_clause}
+            {order_clause}
+            LIMIT ? OFFSET ?
+        """
+        
+        # Execute query with pagination
+        values.extend([page_size, offset])
+        cursor.execute(query, values)
+        
+        # Convert rows to model instances
+        results = [cls(**dict(row)) for row in cursor.fetchall()]
+        
+        return results, total_count
 
     def update(self, data: Dict[str, Any], connection: Optional[sqlite3.Connection] = None) -> None:
         """Update this record in the database.

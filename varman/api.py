@@ -23,6 +23,86 @@ def list_variables() -> List[Variable]:
     """List all variables."""
     return Variable.get_all()
 
+def list_variables_paginated(page: int = 1, page_size: int = 20, 
+                           filters: Optional[Dict[str, Any]] = None,
+                           sort_by: Optional[str] = None,
+                           sort_order: str = "asc",
+                           search: Optional[str] = None) -> Tuple[List[Variable], int]:
+    """List variables with pagination, filtering, sorting, and search.
+    
+    Args:
+        page: Page number (1-based). Must be >= 1.
+        page_size: Number of records per page. Must be > 0.
+        filters: Dictionary of column-value pairs to filter by.
+        sort_by: Column name to sort by. Must be a valid column in the table schema.
+        sort_order: Sort order, either "asc" or "desc".
+        search: Optional search term to filter by name or description.
+        
+    Returns:
+        A tuple containing:
+            - A list of Variable instances for the requested page
+            - The total count of records matching the filters and search
+            
+    Raises:
+        ValueError: If page < 1, page_size <= 0, sort_by is not a valid column,
+                   or sort_order is not "asc" or "desc".
+    """
+    return Variable.get_paginated(page, page_size, filters, sort_by, sort_order, search)
+
+def list_category_sets_paginated(page: int = 1, page_size: int = 20, 
+                               filters: Optional[Dict[str, Any]] = None,
+                               sort_by: Optional[str] = None,
+                               sort_order: str = "asc",
+                               search: Optional[str] = None) -> Tuple[List[CategorySet], int]:
+    """List category sets with pagination, filtering, sorting, and search.
+    
+    Args:
+        page: Page number (1-based). Must be >= 1.
+        page_size: Number of records per page. Must be > 0.
+        filters: Dictionary of column-value pairs to filter by.
+        sort_by: Column name to sort by. Must be a valid column in the table schema.
+        sort_order: Sort order, either "asc" or "desc".
+        search: Optional search term to filter by name.
+        
+    Returns:
+        A tuple containing:
+            - A list of CategorySet instances for the requested page
+            - The total count of records matching the filters and search
+            
+    Raises:
+        ValueError: If page < 1, page_size <= 0, sort_by is not a valid column,
+                   or sort_order is not "asc" or "desc".
+    """
+    return CategorySet.get_paginated(page, page_size, filters, sort_by, sort_order, search)
+
+def list_categories_paginated(page: int = 1, page_size: int = 20, 
+                            filters: Optional[Dict[str, Any]] = None,
+                            sort_by: Optional[str] = None,
+                            sort_order: str = "asc",
+                            search: Optional[str] = None,
+                            category_set_id: Optional[int] = None) -> Tuple[List[Category], int]:
+    """List categories with pagination, filtering, sorting, and search.
+    
+    Args:
+        page: Page number (1-based). Must be >= 1.
+        page_size: Number of records per page. Must be > 0.
+        filters: Dictionary of column-value pairs to filter by.
+        sort_by: Column name to sort by. Must be a valid column in the table schema.
+        sort_order: Sort order, either "asc" or "desc".
+        search: Optional search term to filter by name.
+        category_set_id: Optional category set ID to filter by.
+        
+    Returns:
+        A tuple containing:
+            - A list of Category instances for the requested page
+            - The total count of records matching the filters and search
+            
+    Raises:
+        ValueError: If page < 1, page_size <= 0, sort_by is not a valid column,
+                   or sort_order is not "asc" or "desc".
+    """
+    return Category.get_paginated(page, page_size, filters, sort_by, sort_order, search, category_set_id)
+
 def import_variables(file_path: str, overwrite: bool = False) -> Tuple[List[Variable], List[str], List[str]]:
     """Import variables from a JSON file."""
     return Variable.import_from_json(file_path, overwrite)
